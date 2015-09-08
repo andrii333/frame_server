@@ -19,6 +19,10 @@ def mystyle_css():
     return idx, 200, {"Content-type":"text/css"}
 
 
+@app.route('/')
+def test():
+	return 'Test'
+	
 if __name__ == '__main__':
     app.run(host="172.30.6.42",port=5000)
 
