@@ -1,8 +1,28 @@
 from flask import Flask, request,Response
+import os
 import sys
 
-sys.path.append('/home/andrii/workshop/flask_user')
+
+#determine path of flask_user library and append to sys.path
+current_path = os.path.realpath(__file__).split('/')
+l = len(current_path)
+current_path[l-1] = 'flask_user'
+current_path = '/'.join(current_path)
+sys.path.append(current_path)
+
+
 from flask_user import User
+
+
+
+
+
+
+
+
+
+
+
 
 app = Flask(__name__)
 
@@ -67,4 +87,4 @@ def drop_log():
 
 
 if __name__=='__main__':
-	app.run(debug=True)
+	app.run(debug=False, host="188.166.80.84",port=8080)
