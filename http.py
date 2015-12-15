@@ -1,6 +1,9 @@
+from functools import wraps
 from flask import Flask, request,Response
 import os
 import sys
+import json
+
 
 
 #determine path of flask_user library and append to sys.path
@@ -12,13 +15,6 @@ sys.path.append(current_path)
 
 
 from flask_user import User
-
-
-
-
-
-
-
 
 
 
@@ -36,46 +32,70 @@ def before_request():
 @app.after_request
 def after_request(resp):
 	resp = app.user.serialize(resp)
-#	resp.set_cookie('log_token','fff')
 	return resp
+
+
+
+def for_role(roles=[]):
+	def decorator(f):
+		@wraps(f)
+		def decorated_function(*args, **kwargs):
+			permit = app.user.check_auth(roles)
+			if permit== True:
+				fin  = f(*args, **kwargs)
+				return fin
+			else:
+				return permit
+		return decorated_function
+	return decorator
+
 
 
 
 
 @app.route('/')
-def test_1():
-#	d = app.make_response('fff')
-#	d.set_cookie('log_token','ggg')
-#	app.user.login('andrii','pass')
+def start():
+	
+	t = open('./index.html','r')
+	r = t.read()
+	t.close()
 
-	if app.user.check_auth(['admin'])==True:
-		return 'You are Log IN'
-	else:
-		return app.user.check_auth(['admin'])
+	return r
 
 
-@app.route('/login/<user_name>/<user_pass>')
-def login(user_name,user_pass):
-	f = app.user.login(user_name,user_pass)
+@app.route('/login', methods=['POST'])
+def login():
+	u_doc = json.loads(request.data)
+	f = app.user.login(u_doc['name'],u_doc['pass'])
 	if f!=True:
 		return f
 
-	return 'OK'
+	return 'Logged'
 
 
-@app.route('/registr/<u_name>/<u_pass>')
-def registr(u_name,u_pass):
-	j = {}
-	j['name'] = u_name
-	j['pass'] = u_pass
-	j['roles'] = ['admin']
-	j['token_live_time'] = 86400
-	f = app.user.registr(j)
+@app.route('/registr',methods=['POST'])
+def registr():
+	u_doc = json.loads(request.data)
+	u_doc['roles'] = ['admin']
+	u_doc['token_live_time'] = 86400
+	
+	f = app.user.registr(u_doc)
+
+	#send error during registred
+	if f!=True:
+		return f
 
 	if f==True:
-		f = app.user.login('andrii','ddd')
+		f = app.user.login(u_doc['name'],u_doc['pass'])
 
-	return str(f)
+	return 'Registred'
+
+@app.route('/test')
+@for_role(['admin','polic'])
+def ggg():
+	return "Ok"
+
+
 
 
 
@@ -87,4 +107,4 @@ def drop_log():
 
 
 if __name__=='__main__':
-	app.run(debug=False, host="188.166.80.84",port=8080)
+	app.run(debug=False, host="46.101.122.41",port=80)
