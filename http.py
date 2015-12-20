@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import Flask, request,Response
+from flask import Flask, request,Response, redirect
 import os
 import sys
 import json
@@ -79,21 +79,23 @@ def registr():
 	u_doc['roles'] = ['admin']
 	u_doc['token_live_time'] = 86400
 	
-	f = app.user.registr(u_doc)
+	u_doc_new = u_doc.copy()
+	f = app.user.registr(u_doc_new)
 
 	#send error during registred
 	if f!=True:
 		return f
 
 	if f==True:
+		print u_doc['pass']
 		f = app.user.login(u_doc['name'],u_doc['pass'])
 
 	return 'Registred'
 
-@app.route('/test')
-@for_role(['admin','polic'])
+@app.route('/user')
+@for_role(['admin'])
 def ggg():
-	return "Ok"
+	return app.user.session['name']
 
 
 
@@ -102,7 +104,7 @@ def ggg():
 @app.route('/drop')
 def drop_log():
 	app.user.drop_log_token()
-	return 'Ok'	
+	return 'OK'
 
 
 
